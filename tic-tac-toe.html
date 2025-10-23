@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <!-- Google Font for a playful look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Basic Setup */
+        :root {
+            --bg-color: #2c3e50;
+            --main-color: #ffffff;
+            --primary-color: #4a90e2; /* Blue */
+            --player-x-color: #e63946; /* Red */
+            --player-o-color: #1d3557; /* Dark Blue */
+            --cell-bg: #e3eaf2;
+            --cell-hover: #618bce;
+            --win-bg: #a8dadc;
+            --text-color: #333;
+            --border-radius: 12px;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        /* Main Game Container */
+        main {
+            text-align: center;
+            background: var(--main-color);
+            padding: 2rem 2.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Status Display */
+        #status {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            height: 1.5rem; /* Prevents layout shift */
+        }
+
+        /* Game Board */
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            margin: 0 auto;
+            max-width: 320px;
+        }
+
+        /* Board Cells */
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: var(--cell-bg);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .cell:hover {
+            background-color: var(--cell-hover);
+        }
+
+        /* Player-specific colors */
+        .cell.x {
+            color: var(--player-x-color);
+        }
+
+        .cell.o {
+            color: var(--player-o-color);
+        }
+
+        /* Winning cell animation */
+        .cell.win {
+            background-color: var(--win-bg);
+            animation: bounce 0.6s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Restart Button */
+        #restartButton {
+            margin-top: 1.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        #restartButton:hover {
+            background: #357ABD;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
+        }
+
+        #restartButton:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        /* Custom Modal for Messages (replaces alert()) */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--main-color);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 320px;
+        }
+
+        #messageText {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        #closeModal {
+            padding: 0.6rem 1.2rem;
+            font-size: 1rem;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            background: #5cb85c; /* Green */
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(92, 184, 92, 0.4);
+        }
+
+        #closeModal:hover {
+            background: #4a9b4a;
+            transform: translateY(-2px);
+        }
+
+
+        /* Responsive Design */
+        @media (max-width: 400px) {
+            main {
+                padding: 1.5rem;
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            #board {
+                grid-template-columns: repeat(3, 80px);
+                grid-template-rows: repeat(3, 80px);
+                gap: 8px;
+                max-width: 264px; /* 80*3 + 8*2 */
+            }
+
+            .cell {
+                width: 80px;
+                height: 80px;
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Game Content -->
+    <main>
+        <h1>Tic-Tac-Toe</h1>
+        <p id="status">Player X's turn</p>
+        <div id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+        <button id="restartButton">Restart Game</button>
+    </main>
+
+    <!-- Custom Modal for Game Over Messages -->
+    <div id="messageBox" class="modal">
+        <div class="modal-content">
+            <p id="messageText"></p>
+            <button id="closeModal">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const statusDisplay = document.getElementById('status');
+            const boardElement = document.getElementById('board');
+            const restartButton = document.getElementById('restartButton');
+            const cells = Array.from(document.querySelectorAll('.cell'));
+            
+            // Modal Elements
+            const messageBox = document.getElementById('messageBox');
+            const messageText = document.getElementById('messageText');
+            const closeModal = document.getElementById('closeModal');
+
+            // --- Game State ---
+            let board = ['', '', '', '', '', '', '', '', ''];
+            let currentPlayer = 'X';
+            let gameActive = true;
+
+            const winningConditions = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6]
+            ];
+
+            // --- Functions ---
+
+            /**
+             * Shows a custom modal message.
+             * @param {string} message - The message to display.
+             */
+            function showMessage(message) {
+                messageText.textContent = message;
+                messageBox.style.display = 'flex';
+            }
+
+            /**
+             * Checks for a win or a draw.
+             */
+            function checkWin() {
+                let roundWon = false;
+                let winningCombo = [];
+
+                for (let i = 0; i < winningConditions.length; i++) {
+                    const condition = winningConditions[i];
+                    const a = board[condition[0]];
+                    const b = board[condition[1]];
+                    const c = board[condition[2]];
+
+                    if (a === '' || b === '' || c === '') {
+                        continue;
+                    }
+                    if (a === b && b === c) {
+                        roundWon = true;
+                        winningCombo = condition;
+                        break;
+                    }
+                }
+
+                if (roundWon) {
+                    showMessage(`Player ${currentPlayer} wins!🎉`);
+                    gameActive = false;
+                    // Highlight winning cells
+                    winningCombo.forEach(index => {
+                        cells[index].classList.add('win');
+                    });
+                    return;
+                }
+
+                // Check for Draw
+                if (!board.includes('')) {
+                    showMessage("It's a draw!");
+                    gameActive = false;
+                    return;
+                }
+            }
+
+            /**
+             * Switches the current player.
+             */
+            function changePlayer() {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                statusDisplay.textContent = `Player ${currentPlayer}'s turn`;
+            }
+
+            /**
+             * Handles a click on a cell.
+             * @param {Event} e - The click event.
+             */
+            function handleCellClick(e) {
+                const cell = e.target;
+                const index = cell.getAttribute('data-index');
+
+                // Ignore click if cell is already filled or game is over
+                if (board[index] !== '' || !gameActive) {
+                    return;
+                }
+
+                // Update state and UI
+                board[index] = currentPlayer;
+                cell.textContent = currentPlayer;
+                cell.classList.add(currentPlayer.toLowerCase());
+
+                // Check for win, then change player
+                checkWin();
+                if (gameActive) {
+                    changePlayer();
+                }
+            }
+
+            /**
+             * Resets the game to its initial state.
+             */
+            function restartGame() {
+                board = ['', '', '', '', '', '', '', '', ''];
+                currentPlayer = 'X';
+                gameActive = true;
+                statusDisplay.textContent = `Player ${currentPlayer}'s turn`;
+
+                // Clear UI
+                cells.forEach(cell => {
+                    cell.textContent = '';
+                    cell.classList.remove('x', 'o', 'win');
+                });
+
+                // Hide modal if it's open
+                messageBox.style.display = 'none';
+            }
+
+            // --- Event Listeners ---
+            cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+            restartButton.addEventListener('click', restartGame);
+            
+            // Close modal button also restarts the game
+            closeModal.addEventListener('click', restartGame);
+
+            // Initialize game
+            restartGame();
+        });
+    </script>
+</body>
+</html>
